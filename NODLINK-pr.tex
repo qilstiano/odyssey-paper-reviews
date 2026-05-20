@@ -1,0 +1,99 @@
+\documentclass[11pt]{article}
+
+% Small margins
+\usepackage[top=0.75in, bottom=0.75in, left=0.75in, right=0.75in]{geometry}
+
+% Better typography
+\usepackage{mathptmx}  % Times-like font (professional and space-efficient)
+\usepackage[scaled=0.92]{helvet}  % Sans-serif for headings
+\usepackage{courier}  % Monospace for URLs/code if needed
+
+% Line spacing for readability but compact
+\usepackage{setspace}
+\setstretch{1.1}
+
+% No paragraph indentation, small skip instead
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+
+% Headers/footers with reviewer info
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% Useful packages
+\usepackage{url}
+\usepackage{graphicx}
+\usepackage{xcolor}
+
+% For review comments
+\usepackage[colorlinks, citecolor=blue, linkcolor=blue, urlcolor=blue]{hyperref}
+
+% Simple review comment command
+\newcommand{\reviewcomment}[2][red]{{\color{#1}\small [Reviewer: #2]}}
+
+\begin{document}
+
+% === Review header ===
+\begin{center}
+    {\textit {Paper Review}} \\[8pt]
+    {\LARGE \textbf{NODLINK: An Online System for Fine-Grained APT  Attack Detection and Investigation} }
+    
+    { \textit DOI: 10.14722/ndss.2024.23204 }\\
+    { \textit Reviewer: Muhammad A'qil }\\
+    { \textit Date: \today \\[4pt] }
+    \vspace{1cm}
+    \hrule
+\end{center}
+
+% === Introduction section ===
+\section*{Introduction}
+The key problem NODLINK addresses is detecting Advanced Persistent Threat (APT) attacks in real-time using provenance graphs. Existing online systems sacrifice detection granularity for speed, making investigation like "searching for a needle in a haystack." The authors observe that APT detection can be modeled as a \href{https://www.geeksforgeeks.org/dsa/steiner-tree/}{Steiner Tree Problem} (STP), which has online approximation algorithms with bounded error.
+
+However, classical STP algorithms are too expensive for online use. To address this, the authors propose the \textbf{Importance-Score-Guided (ISG) greedy algorithm}, reducing time complexity from $O(N^2)$ to $O(\theta N)$ by exploring only top-$\theta$ important nodes per terminal. ISG forms the core of NODLINK's \textbf{hopset construction}.
+
+NODLINK uses some interesting features to generate significantly fewer false positives than 2 other state-of-the-art (SOTA) online detection systems:
+\begin{itemize}
+    \item \textbf{In-memory cache: }prioritises anomalous nodes to handle long-running attacks
+    \item \textbf{Terminal identification: }uses a lightweight VAE (Variational AutoEncoder) to flag suspicious processes 
+    \item \textbf{Hopset construction: }a novel importance-score-guided novel algorithm that approximates the Steiner tree faster than classical approaches
+    \item \textbf{Comprehensive detection: }merges results across time windows and uses \href{https://en.wikipedia.org/wiki/Grubbs%27s_test}{Grubb's test} to flag attack campaigns
+\end{itemize}
+
+NODLINK was open-world evaluated in hospitals, universities, and factories, detecting 7 real attacks that \href{https://arxiv.org/pdf/2601.14601}{HOLMES} missed entirely. Node-level precision is 2-3 orders of magnitude higher than UNICORN, with comparable or better throughput.
+
+The paper's main contributions include: (1) formulating APT detection as online STP with theoretical bounds, (2) the ISG algorithm achieving $O(\theta N)$ complexity while maintaining $O(\log k)$ competitive ratio, (3) a working system deployed commercially, and (4) the first open-world evaluation of provenance-based APT detection. This review examines \textit{continue here...}
+
+% === Strengths section ===
+\section*{Strengths}
+\begin{itemize}
+    \item \textbf{1. Novelty of Theoretical Framing} \\
+    NODLINK is the first work to formalise online APT detection as a STP with provable approximation bounds. This claim is supported by subsequent work (e.g., \href{https://www.sciencedirect.com/science/article/abs/pii/S1389128625006279}{CCLog}), which builds directly upon NODLINK's STP formulation and also cites the paper. The formal framing distinguishes NODLINK from prior heuristic-based systems (HOLMES, UNICORN).
+    \item \textbf{2. Strong Evaluation Methodology} \\
+    First open-world evaluation of provenance-based APT detection systems, deployed in a live commerical SOC across 300+ machines across a variety of industries (hospitals, universities, and factories). NODLINK detected 7 real attacks that HOLMES missed entirely, while UNICORN produced 1000$\times$ more node-level false positives. Throughput is comparable to or better than SOTA systems, processing 40+ events per second per host.
+    \item \textbf{3. Relevance and Impact} \\
+    NODLINK addresses a critical and urgent industrial problem -- APT detection under timeliness and resource constraints. It provides real benefits to security analysts, reducing the problem of "finding a needle in a haystack" significantly. The open source release and public datasets also lowers barriers for future research in similar provenance-based systems security. 
+\end{itemize}
+
+% === Weaknesses section ===
+\section*{Weaknesses}
+\begin{itemize}
+    \item \textbf{ISG Algorithm Concerns:} 
+    \begin{itemize}
+        \item \textbf{Problem mismatch:} The paper claims ISG approximates STP, with both aiming for ``cheap'' connections. However, STP minimizes global edge count, while ISG greedily maximizes a local importance score combining anomaly, distance, and fanout. These objectives are not equivalent. The paper does not prove that maximising IV approximates minimising edge weight, nor bound the potential divergence between the two.
+        \item \textbf{Disconnected terminals not addressed:} The paper does not specify how ISG handles cases where terminals cannot be connected within the $\theta = 10$ hop bound. This includes attacks spanning more than 10 hops or multiple unrelated attack campaigns. The behaviour in such cases, whether alerts are raised, suppressed, or deferred, is undefined.
+    \end{itemize}
+    \item \textbf{2:} ...
+    \item \textbf{3:} ...
+\end{itemize}
+
+% === Possible enhancements section ===
+\section*{Possible Enhancements}
+Here you can write some possible enhancements.
+
+% === Summary section ===
+\section*{Summary}
+
+
+\end{document}
