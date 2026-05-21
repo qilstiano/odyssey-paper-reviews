@@ -49,16 +49,10 @@ Detection and Investigation}} \\[2pt]
 \vspace{8pt}
 
 % === Introduction section (shortened) ===
-\section*{Introduction}
 NODLINK addresses real-time APT detection using provenance graphs. Existing online systems sacrifice granularity for speed, making investigation like ``searching for a needle in a haystack.'' The authors model detection as a \href{https://www.geeksforgeeks.org/dsa/steiner-tree/}{Steiner Tree Problem} (STP) and propose the \textbf{Importance-Score-Guided (ISG) greedy algorithm}, reducing complexity from $O(N^2)$ to $O(\theta N)$ by exploring top-$\theta$ important nodes per terminal.
 
-Key features:
-\begin{itemize}
-    \item \textbf{In-memory cache:} prioritises anomalous nodes for long-running attacks
-    \item \textbf{Terminal identification:} VAE-based anomaly detection
-    \item \textbf{Hopset construction:} ISG for fast Steiner tree approximation
-    \item \textbf{Comprehensive detection:} Grubb's test to flag attack campaigns
-\end{itemize}
+Key features include an in-memory cache to prioritise anomalous nodes, VAE-based terminal identification, ISG for hopset construction and Grubb's stest to flag attack campaigns.
+
 
 NODLINK was open-world evaluated across hospitals, universities, and factories, detecting 7 real attacks that HOLMES missed. Node-level precision is 2-3 orders of magnitude higher than UNICORN, with comparable throughput.
 
@@ -68,11 +62,11 @@ Contributions: (1) STP formulation for APT detection, (2) ISG algorithm with $O(
 \section*{Strengths}
 \begin{itemize}
     \item \textbf{1. Novelty of Theoretical Framing:}
-    NODLINK is the first work to formalise online APT detection as a STP with provable approximation bounds. This claim is supported by subsequent work (e.g. \href{https://www.sciencedirect.com/science/article/abs/pii/S1389128625006279}{CCLog}), which builds directly upon NODLINK's STP formulation and also cites the paper. The formal framing distinguishes NODLINK from prior heuristic-based systems (HOLMES, UNICORN).
+    NODLINK is the first work to formalise online APT detection as a STP with provable approximation bounds. This claim is supported by subsequent work (e.g. \href{https://www.sciencedirect.com/science/article/abs/pii/S1389128625006279}{CCLog}), which builds directly upon NODLINK's STP formulation and also cites the paper.
     \item \textbf{2. Strong Evaluation Methodology:}
-    First open-world evaluation of provenance-based APT detection systems, deployed in a live commerical SOC across 300+ machines across a variety of industries (hospitals, universities, and factories). NODLINK detected 7 real attacks that HOLMES missed entirely, while UNICORN produced 1000$\times$ more node-level false positives. Throughput is comparable to or better than SOTA systems, processing 40+ events per second per host.
+    First open-world evaluation of provenance-based APT detection systems, deployed in a live commerical SOC across 300+ machines across a variety of industries (hospitals, universities, and factories).
     \item \textbf{3. Relevance and Impact:}
-    NODLINK addresses a critical and urgent industrial problem -- APT detection under timeliness and resource constraints. It provides real benefits to security analysts, reducing the problem of "finding a needle in a haystack" significantly. The open source release and public datasets also lowers barriers for future research in similar provenance-based systems security. 
+    NODLINK addresses a critical and urgent industrial problem -- APT detection under timeliness and resource constraints. The open source release and public datasets also lowers barriers for future research in similar provenance-based systems security. 
 \end{itemize}
 
 % === Weaknesses section ===
@@ -80,17 +74,17 @@ Contributions: (1) STP formulation for APT detection, (2) ISG algorithm with $O(
 \begin{itemize}
     \item \textbf{1. ISG Algorithm Concerns} 
     \begin{itemize}
-        \item \textbf{Formulation-implementation mismatch:} On page 5, the paper states the objective is to find an edge set $S$ with \textit{minimal total weight} connecting all terminals. However, the ISG algorithm (as defined in Section V-C) performs no minimisation in Hopset construction. It greedily explores nodes by importance score $IV(n)$ and stops after $\theta=10$ nodes per terminal. There is no step that compares alternative paths or selects a minimal-weight subset. The paper never reconciles this discrepancy.
-        \item \textbf{Disconnected terminals not addressed:} The ISG algorithm terminates exploration after $\theta = 10$ hops per terminal. It exploits the "attack polymerism" property of APT attacks. If terminals are farther apart, they remain disconnected. The paper does not specify: (a) whether NODLINK raises alerts for disconnected hopsets, (b) whether it attempts to connect them across time windows, or (c) how often real attacks exceed this bound. Long-running APTs with extensive lateral movement across many hosts could potentially exceed this bound, rendering NODLINK unable to connect the full attack chain.
+        \item \textbf{Formulation-implementation mismatch:} On page 5, the paper states the objective is to find an edge set $S$ with \textit{minimal total weight} connecting all terminals. However, the ISG algorithm (as defined in Section V-C) performs no minimisation in Hopset construction. It greedily explores nodes by importance score $IV(n)$ and stops after $\theta=10$ nodes per terminal. There is no step that compares alternative paths or selects a minimal-weight subset. The paper does not reconcile this discrepancy.
+        \item \textbf{Disconnected terminals not addressed:} The ISG algorithm terminates exploration after $\theta = 10$ hops per terminal. It exploits the ``attack polymerism" property of APT attacks. If terminals are farther apart, they remain disconnected. The paper does not specify what is done to address this/how often attacks exceed this bound. Long-running APTs with extensive lateral movement across many hosts could potentially exceed this bound, rendering NODLINK unable to connect the full attack chain.
     \end{itemize}
-    \item \textbf{2. Open-world ground truth limitations:} Ground truth relied on Sangfor's existing EDR rules to filter 135,700 alerts to 2,000 for manual review. This introduces potential bias toward attack patterns already known to Sangfor's rule set. Attacks not matching those rules would be absent from the ground truth. The paper does not comment on or attempt to estimate false negatives in the ground truth itself. More constructive independent open-world evaluation would involve third-party validation or red-team exercises unknown to the system.
-    \item \textbf{3. No analysis of false negatives:} While the paper reports precision and recall, it does not analyze the specific attacks or attack steps that NODLINK misses. The authors note that "reconnaissance steps such as whoami, ipconfig, tasklist" are missed, but do not quantify how often this occurs or discuss whether such misses matter for attack campaign reconstruction.
+    \item \textbf{2. Open-world ground truth limitations:} Ground truth relied on Sangfor's existing EDR rules to filter 135,700 alerts to 2,000 for manual review. This introduces potential bias toward attack patterns already known to Sangfor's rule set. The paper does not comment on or attempt to estimate false negatives in the ground truth itself. More constructive independent open-world evaluation would involve third-party validation or red-team exercises unknown to the system.
+    \item \textbf{3. No analysis of false negatives:} While the paper reports precision and recall, it does not analyze the specific attacks or attack steps that NODLINK misses. The authors note that ``reconnaissance steps such as whoami, ipconfig, tasklist" are missed, but do not quantify how often this occurs or discuss whether such misses matter for attack campaign reconstruction.
 \end{itemize}
 
 % === Possible enhancements section ===
 \section*{Possible Enhancements}
 \begin{itemize}
-    \item \textbf{$\theta=10$ adjustments:} Replace fixed $\theta=10$ with an adaptive mechanism. Some ideas I had: (a) gradually increasing $\theta$ until terminals connect till timeout is reached, (b) using graph diameter statistics to set $\theta$ per deployment environment, or (c) logging disconnected hopsets for analyst review. Specify fallback behavior when $\theta$ is insufficient.
+    \item \textbf{$\theta=10$ adjustments:} Replace fixed $\theta=10$ with an adaptive mechanism. Some ideas I had: (a) gradually increasing $\theta$ until terminals connect till timeout is reached, (b) using graph diameter statistics to set $\theta$ per deployment environment, or (c) logging disconnected hopsets for analyst review. Specifying fallback behavior when $\theta$ is insufficient would be helpful.
     \item \textbf{Adversarial evaluation:} Evaluate NODLINK under targeted evasion strategies including: (a) gradient-based attacks against VAE embeddings, (b) high-IV decoy nodes designed to exhaust the $\theta$ budget, and (c) cache poisoning attacks. Report robustness metrics and discuss potential countermeasures.
 \end{itemize}
 
